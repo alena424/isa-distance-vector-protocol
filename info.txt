@@ -1,9 +1,46 @@
 RIP protocol
 
 General
-- network collection of Autonomous sytems, each AS its own routing technology
+- network collection of Autonomous systems, each AS its own routing technology
 - IGP(INTERNAL GATEWAY PROTOCOL): used within an AS
 - EGP(EXTERNAL gateway protocol): used among AS
+<title page>
+
+<obsah>
+
+<Implementation>
+
+<Testing>
+
+<Conclusion>
+
+<Bibliografie>
+
+-------------------------------------------------------------
+
+<Introduction>
+Our main task was to deeply study routing protocols RIP, RIP2 and RIPng. After that, we implemented sniffer RIPv1, RIPv2 and RIPng messages, faker that sends response messages to router and perform a success attack.
+
+<Theorie>
+RIP is a distance-vector routing protocol used in smaller networks, that sends the complete routing table out to all interfaces every 30 seconds. RIPv1 only uses hops to determine the best way to a remote network. However there is a maximum hop count of 15 by default (16 means unreachable). RIP version 1 uses only classful routing meaning that all devices in the network must use same subnet mask. The reason is that RIPv1 doesn't send updates with subnet mask information. On the other hand RIPv2 provides classful routing and sends subnet mask with the route updates.
+
+<Comparison between RIPV1 and RIPV2>
+RIPV1
+- No authentication
+- no support for disconnected networks
+- classful
+- broadcast based
+- no support for VLSM (variable long subnet mask)
+
+RIPV2
+- allows MD5 authentication
+- supports disconnected networks
+- classless
+- uses multicast 244.0.0.9
+- support for VLSM
+
+
+RIPng
 - RIPng works as IGP in modern size AS
 
 1 - request    A request for the responding system to send all or
@@ -17,64 +54,64 @@ IPV4
 
 
 IPV6
-- algoritms: distance Vector algorithm (sometimes called Ford-Fulkerson algorithm cause of earliest desription or Bellman-Ford cause of Bellmans equation)
+- algorithms: distance Vector algorithm (sometimes called Ford-Fulkerson algorithm cause of earliest description or Bellman-Ford cause of Bellman’s equation)
 
 Limitations:
 1. maximum of 15 hops
 2. counting to infinity to resolve certain unusual situations 2.2. (loop -> require either much time or bandwidth)
 3. uses fixed metrics (no real time factors as delay, reliability, load)
 
-- each router that implemets RIPng is assumed to have a routing table
+- each router that implements RIPng is assumed to have a routing table
 
 Entry:
 1. metric - cost of getting a datagram from the router to that destination
-2. next hop - ipv6 address of next router along the path to the destionation 
+2. next hop - ipv6 address of next router along the path to the destination 
 3. route change flag - flag to indicate if the route changed recently
-4. timers sec. 2.3.
+4. timers [sec. 2.3.]
 
 destination prefix - 128bits -> 16bytes
-route tag - differs extarnal ripng routes and internal ex. number of Autonomous Systems from which the routes were learned
+route tag - differs external ripng routes and internal ex. number of Autonomous Systems from which the routes were learned
 prefix length - contains a value between 0 and 128 inclusive
-			- 0 mans default route, prefix should be 0:0:0:0:0:0:0:0
-next hop	- is identifiedf if metric equals 0xFF that route tag anf prefix legth must be zero
-			- purpose: elimintae packets being routed through extra hops in the systems, if not link lokal shoud be treated as 0:0:0:0:0:0:0:0:0:0 (8x)
+			- 0 means default route, prefix should be 0:0:0:0:0:0:0:0
+next hop	- is identified if metric equals 0xFF that route tag and prefix length must be zero
+			- purpose: eliminate packets being routed through extra hops in the systems, if not link local should be treated as 0:0:0:0:0:0:0:0:0:0 (8x)
 
 timers
-- every 30 secons updates are triggered
+- every 30 seconds updates are triggered
 - the 30 second timer is offset by a small random time +/- 0 to 15 seconds
-- timout - after timeout, the route is no longer valid, remains in routing table for a short time so the neighbors can be notified that the routers has been dropped
--> upon expiration of the garbage-collector timer, the route is finaly removed from the routing table  
+- timeout - after timeout, the route is no longer valid, remains in routing table for a short time so the neighbors can be notified that the routers has been dropped
+-> upon expiration of the garbage-collector timer, the route is finally removed from the routing table  
 
-timeout inicialized
+timeout initialized
 1. when route is established
 2. any time an update message is received for the route
-! of 180 secons elapse from the last time the timeout was inicialized -> the route is considered as expired -> starts deletion process
+! of 180 seconds elapse from the last time the timeout was initialized -> the route is considered as expired -> starts deletion process
 
 Deletions
-2 reasons: the timeout expires, metric is set to 16 because of an update received from the currect router
+2 reasons: the timeout expires, metric is set to 16 because of an update received from the correct router
 
 1. garbage-collector timer is set to 120 seconds
 2. metric for the route is 16 infinity
 3. the flag is set that this entry has been changed
-4. the output porcess is signalled to trigger a response
+4. the output process is signaled to trigger a response
 
-until the garbase collectorexpires, the route is included in all updates sent BY this router. When expires -> the route is deleted from the routing table
+until the garbage collector expires, the route is included in all updates sent BY this router. When expires -> the route is deleted from the routing table
 
 Request message
-- ask for response containg all or part of a routers routing table.
-- normaly send as multicast BUT can be a situation that we need to send to just one response to just one router -> packet is sent direcly to the router from a UDP port other that the IPng port
+- ask for response containing all or part of a routers routing table.
+- normally send as multicast BUT can be a situation that we need to send to just one response to just one router -> packet is sent directly to the router from a UDP port other that the RIPng port
 - if the re no entries no response is given
---> one special case: one entry in the request, destation prefix is zero, a prefix length is zero, metric of infinity 16, then this is request to snd ENTIRE routing table
+--> one special case: one entry in the request, dictation prefix is zero, a prefix length is zero, metric of infinity 16, then this is request to send ENTIRE routing table
 
 Response
 3 reasons
-- response to a quiery
+- response to a query
 - regular update
 - triggered update caused by a route change
 
 controls
 response must be ignored if:
-- ip address is not from rigth UDP port
+- ip address is not from right UDP port
 - ip source is from a valid neighbor
 - the source of datagram must be from link local address
 
@@ -90,17 +127,160 @@ metric = MIN (metric + cost, infinity)
 
 Process of setting a route to routing table
 - set destination prefix and length in RTE (routing table entry)
-- set metric to the nexly calculated metric
-- set the next hop address to be the address from whicg the datagram came or is specified by a next hop in RTE
-- inicialized the timeout
+- set metric to the newly calculated metric
+- set the next hop address to be the address from which the datagram came or is specified by a next hop in RTE
+- initialized the timeout
 - set the route change flag
-- signal the outpur process to trigger an update
+- signal the output process to trigger an update
 
 if there is an existing router -> compare next hop -> if next hop is from the same router as the existing router -> update timer
 if metric is lower -> put the next metric in, adjust hp address, set the route change flag, if infinity start the deletion process
 
 response message is multicast group FF02::9
 
-poison reverse - loop, we poinson omne router e.g. set metric to infinity
+poison reverse - loop, we poison one router e.g. set metric to infinity
+
+
+RIP protocol
+
+General
+- network collection of Autonomous systems, each AS its own routing technology
+- IGP(INTERNAL GATEWAY PROTOCOL): used within an AS
+- EGP(EXTERNAL gateway protocol): used among AS
+<title page>
+
+<obsah>
+
+<Implementation>
+
+<Testing>
+
+<Conclusion>
+
+<Bibliografie>
+
+-------------------------------------------------------------
+
+<Introduction>
+Our main task was to deeply study routing protocols RIP, RIP2 and RIPng. After that, we implemented sniffer RIPv1, RIPv2 and RIPng messages, faker that sends response messages to router and perform a success attack.
+
+<Theorie>
+RIP is a distance-vector routing protocol used in smaller networks, that sends the complete routing table out to all interfaces every 30 seconds. RIPv1 only uses hops to determine the best way to a remote network. However there is a maximum hop count of 15 by default (16 means unreachable). RIP version 1 uses only classful routing meaning that all devices in the network must use same subnet mask. The reason is that RIPv1 doesn't send updates with subnet mask information. On the other hand RIPv2 provides classful routing and sends subnet mask with the route updates.
+
+<Comparison between RIPV1 and RIPV2>
+RIPV1
+- No authentication
+- no support for disconnected networks
+- classful
+- broadcast based
+- no support for VLSM (variable long subnet mask)
+
+RIPV2
+- allows MD5 authentication
+- supports disconnected networks
+- classless
+- uses multicast 244.0.0.9
+- support for VLSM
+
+
+RIPng
+- RIPng works as IGP in modern size AS
+
+1 - request    A request for the responding system to send all or
+                  part of its routing table.
+
+2 - response   A message containing all or part of the sender's
+                  routing table.  This message may be sent in response
+                  to a request, or it may be an unsolicited routing
+                  update generated by the sender.
+IPV4
+
+
+IPV6
+- algorithms: distance Vector algorithm (sometimes called Ford-Fulkerson algorithm cause of earliest description or Bellman-Ford cause of Bellman’s equation)
+
+Limitations:
+1. maximum of 15 hops
+2. counting to infinity to resolve certain unusual situations 2.2. (loop -> require either much time or bandwidth)
+3. uses fixed metrics (no real time factors as delay, reliability, load)
+
+- each router that implements RIPng is assumed to have a routing table
+
+Entry:
+1. metric - cost of getting a datagram from the router to that destination
+2. next hop - ipv6 address of next router along the path to the destination 
+3. route change flag - flag to indicate if the route changed recently
+4. timers [sec. 2.3.]
+
+destination prefix - 128bits -> 16bytes
+route tag - differs external ripng routes and internal ex. number of Autonomous Systems from which the routes were learned
+prefix length - contains a value between 0 and 128 inclusive
+			- 0 means default route, prefix should be 0:0:0:0:0:0:0:0
+next hop	- is identified if metric equals 0xFF that route tag and prefix length must be zero
+			- purpose: eliminate packets being routed through extra hops in the systems, if not link local should be treated as 0:0:0:0:0:0:0:0:0:0 (8x)
+
+timers
+- every 30 seconds updates are triggered
+- the 30 second timer is offset by a small random time +/- 0 to 15 seconds
+- timeout - after timeout, the route is no longer valid, remains in routing table for a short time so the neighbors can be notified that the routers has been dropped
+-> upon expiration of the garbage-collector timer, the route is finally removed from the routing table  
+
+timeout initialized
+1. when route is established
+2. any time an update message is received for the route
+! of 180 seconds elapse from the last time the timeout was initialized -> the route is considered as expired -> starts deletion process
+
+Deletions
+2 reasons: the timeout expires, metric is set to 16 because of an update received from the correct router
+
+1. garbage-collector timer is set to 120 seconds
+2. metric for the route is 16 infinity
+3. the flag is set that this entry has been changed
+4. the output process is signaled to trigger a response
+
+until the garbage collector expires, the route is included in all updates sent BY this router. When expires -> the route is deleted from the routing table
+
+Request message
+- ask for response containing all or part of a routers routing table.
+- normally send as multicast BUT can be a situation that we need to send to just one response to just one router -> packet is sent directly to the router from a UDP port other that the RIPng port
+- if the re no entries no response is given
+--> one special case: one entry in the request, dictation prefix is zero, a prefix length is zero, metric of infinity 16, then this is request to send ENTIRE routing table
+
+Response
+3 reasons
+- response to a query
+- regular update
+- triggered update caused by a route change
+
+controls
+response must be ignored if:
+- ip address is not from right UDP port
+- ip source is from a valid neighbor
+- the source of datagram must be from link local address
+
+If the metric is greater than 16, ignore the entry but log the event
+
+Test validations:
+- is the destination prefix valid, a link local address should never be in an RTE
+- is the prefix length valid 0 - 128
+- is the metric valid 1-16
+
+
+metric = MIN (metric + cost, infinity)
+
+Process of setting a route to routing table
+- set destination prefix and length in RTE (routing table entry)
+- set metric to the newly calculated metric
+- set the next hop address to be the address from which the datagram came or is specified by a next hop in RTE
+- initialized the timeout
+- set the route change flag
+- signal the output process to trigger an update
+
+if there is an existing router -> compare next hop -> if next hop is from the same router as the existing router -> update timer
+if metric is lower -> put the next metric in, adjust hp address, set the route change flag, if infinity start the deletion process
+
+response message is multicast group FF02::9
+
+poison reverse - loop, we poison one router e.g. set metric to infinity
 
 
