@@ -39,6 +39,17 @@ RIPV2
 - uses multicast 244.0.0.9
 - support for VLSM
 
+RIPv2
+<Authentication>
+Simple authentication
+
+MD5 authentication
+Type is indicated by the value 3 Key Keyed Message Digest
+16 bits offset from the headers MD5 digest 
+8 bit field contains Key Identifier or Key id -> this defines the key usedto create the data fo rmessage, also indicated authentication algorithm in use for this message
+8 bit field contains the length of data field
+32 bit sequince number -> must be non decreasing for all message with same key ID
+
 
 RIPng
 - RIPng works as IGP in modern size AS

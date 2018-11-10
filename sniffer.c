@@ -125,7 +125,7 @@ int ipv4_process( const u_char *packet){
     {
         if ( rip_entr->family_identif == 0XFFFF )
         {
-            char password_type[] = "Simple password";
+            
             // rfc 4.1
             //he remaining 16 octets contain the plain text password.  If
             //the password is under 16 octets, it must be left-justified and padded
@@ -134,14 +134,30 @@ int ipv4_process( const u_char *packet){
             //remainder of the entry contains the autentication RFC 4.1
             // - max 24 rip entries
 
-            if ( ntohs( rip_entr->route_tag) != SIMPLE_PASS )
+            if ( ntohs( rip_entr->route_tag) == SIMPLE_PASS )   
             {
+
+                memcpy(password,rip_entr->data.rip_auth, PASSWORD );
+
+                printf("\tAuthentication type: Simple Password\n");
+                printf("\tPassword: %s\n", password);
+
+            } else if ( ntohs( rip_entr->route_tag) == RIP_MD5 ){
+                //needs all rip enrty and get new structure
+                rip_md5 *md5;
+                md5 = ( rip_md5 *)((u_char *)rip_entr );
+                printf("\tAuthentication type: Key Message Digest (3)\n");
+                printf("\tRip packet length %d, Key ID %d\n", ntohs(md5->packet_len), md5->keyid);
+                printf("\tAuth Data Len %d, Seq num %d\n", md5->auth_data_len, ntohl(md5->sequence));
+
+            } else {
+
                 fprintf(stderr, "Invalid password\n");
                 return EXIT_FAILURE;
+
             }
-            memcpy(password,rip_entr->data.rip_auth, PASSWORD );
-            printf("\tAuthentication type: %s\n", password_type);
-            printf("\tPassword: %s\n", password);
+            
+            
 
         }
         else

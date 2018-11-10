@@ -31,8 +31,24 @@ using namespace std;
 #define REQUEST 1
 #define RESPONSE 2
 
-#define SIMPLE_PASS 2
 
+#define SIMPLE_PASS 2
+#define RIP_MD5 3
+
+/**
+* Structure of md5 authentication
+* @url https://tools.ietf.org/html/rfc2082
+*/
+struct rip_md5 {
+
+    uint16_t packet_len;
+    uint8_t keyid;
+    uint8_t auth_data_len;
+    uint32_t sequence;
+
+    uint32_t reserv_zeros1;
+    uint32_t reserv_zeros2;
+} ;
 
 
 typedef struct rip_h
