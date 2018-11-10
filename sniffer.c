@@ -99,7 +99,7 @@ int ipv4_process( const u_char *packet){
     my_ip = (struct ip*) (packet+SIZE_ETHERNET);
     size_ip = my_ip->ip_hl*4;   //ip header
 
-    //printf("\tIP: id 0x%x, hlen %d bytes, version %d, total length %d bytes, TTL %d\n",ntohs(my_ip->ip_id),size_ip,my_ip->ip_v,ntohs(my_ip->ip_len),my_ip->ip_ttl);
+    printf("\tIP: id 0x%x, hlen %d bytes, version %d, total length %d bytes, TTL %d\n",ntohs(my_ip->ip_id),size_ip,my_ip->ip_v,ntohs(my_ip->ip_len),my_ip->ip_ttl);
     printf("\tIP: version %d, total length %d bytes, TTL %d\n",my_ip->ip_v,ntohs(my_ip->ip_len),my_ip->ip_ttl);
     printf("\tIP src = %s, ",inet_ntoa(my_ip->ip_src));
     printf("IP dst = %s",inet_ntoa(my_ip->ip_dst));
@@ -139,7 +139,7 @@ int ipv4_process( const u_char *packet){
 
                 memcpy(password,rip_entr->data.rip_auth, PASSWORD );
 
-                printf("\tAuthentication type: Simple Password\n");
+                printf("\tAuthentication type: Simple Password (2)\n");
                 printf("\tPassword: %s\n", password);
 
             } else if ( ntohs( rip_entr->route_tag) == RIP_MD5 ){
@@ -147,17 +147,27 @@ int ipv4_process( const u_char *packet){
                 rip_md5 *md5;
                 md5 = ( rip_md5 *)((u_char *)rip_entr );
                 printf("\tAuthentication type: Key Message Digest (3)\n");
-                printf("\tRip packet length %d, Key ID %d\n", ntohs(md5->packet_len), md5->keyid);
-                printf("\tAuth Data Len %d, Seq num %d\n", md5->auth_data_len, ntohl(md5->sequence));
+                printf("\tDigest Offset: %d, Key ID: %d\n", ntohs(md5->packet_len), md5->keyid);
+                printf("\tAuth Data Len: %d, Seq num: %d\n", md5->auth_data_len, ntohl(md5->sequence));
+
+            } else if ( ntohs( rip_entr->route_tag) == RIP_DATA ){
+                //data
+                rip_md5_data *p;
+                 p = ( rip_md5_data *)((uint8_t *)rip_entr );
+                
+                  //printf("\tAuthentication Data Trailer %d type %d\n", ntohs( p->family_identif), ntohs( p->type)  );
+                 printf("\tAuthentication data: %02x%02x%02x%02x%02x%02x%02x%02x"
+                        "%02x%02x%02x%02x%02x%02x%02x%02x\n",
+                        p->data[0], p->data[1], p->data[2], p->data[3], p->data[4],
+                        p->data[5], p->data[6], p->data[7], p->data[8], p->data[9],
+                        p->data[10], p->data[11], p->data[12], p->data[13], p->data[14], p->data[15]);
+                
 
             } else {
-
                 fprintf(stderr, "Invalid password\n");
                 return EXIT_FAILURE;
 
-            }
-            
-            
+            } 
 
         }
         else

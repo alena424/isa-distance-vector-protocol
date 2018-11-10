@@ -5,6 +5,7 @@
 * @date 20.11.2018
 * project ISA 2018
 */
+
 #include <iostream>
 #include <unistd.h>
 #include <stdio.h>
@@ -34,12 +35,17 @@ using namespace std;
 
 #define SIMPLE_PASS 2
 #define RIP_MD5 3
+#define RIP_DATA 1
+
 
 /**
 * Structure of md5 authentication
 * @url https://tools.ietf.org/html/rfc2082
 */
 struct rip_md5 {
+
+    uint16_t family_identif;
+    uint16_t type; 
 
     uint16_t packet_len;
     uint8_t keyid;
@@ -49,7 +55,16 @@ struct rip_md5 {
     uint32_t reserv_zeros1;
     uint32_t reserv_zeros2;
 } ;
+/**
+* Structure of MD5 authentaction data
+*/
+struct rip_md5_data {
 
+    uint16_t family_identif;
+    uint16_t type; 
+    uint8_t data[16];
+
+} ;
 
 typedef struct rip_h
 {
@@ -105,6 +120,7 @@ typedef struct ripv2_auth
     rip_h header;
     rip_entry auth;
 } ripv2_auth;
+
 
 /*************************** response headers ************************************/
 typedef struct ripng_entry{
