@@ -87,10 +87,10 @@ RIPv2 as a newer protocol should solve problems that appeared in version one. Th
 \subsubsection{Controls}
 There are more controls on RIP packet that we have to keep in mind while programming RIP.
 
+\noindent
 Response must be ignored if:
 \begin{itemize}
 \item ip address is not from right UDP port
-\item ip source is from a valid neighbor
 \item source of datagram must be from link local address
 \item if the metric is greater than 16, ignore the entry but log the event
 \end{itemize}
@@ -109,14 +109,14 @@ Response must be ignored if:
 RIP protocols are designed to have one header ($\SI{4}{\byte}$) and several entries (each $\SI{20}{\byte}$). RIP header contains information as version of RIP and command (either request or response). In entries we find address family identifier (\texttt{AFI}) describing type of address ($\SI{4}{\byte}$), route tag ($\SI{4}{\byte}$), which differs external rip routes from internal or it can be also a type of authentication. If an address family identifier equals \texttt{0xFFFF}, then according to the authentication type we parse authentication data ($\SI{16}{\byte}$). To see more information about authentication go to section~\ref{sec:auth}. If \texttt{AFI} equals value of \texttt{AF\_INET}, then subnet mask ($\SI{4}{\byte}$), destination IPv4 address ($\SI{4}{\byte}$), next hop\footnote{address of next router along the path to the destination} ($\SI{4}{\byte}$) and the cost to reach that destination (called metric, $\SI{4}{\byte}$) are sent.
 
 \subsubsection{RIP header}
-All RIP protocols have same header that contains version, zeros and type of message. There are two types of messages Request and Response.
+All RIP protocols have same header that contains version, zeros and type of message. There are two types of message: Request and Response.
 
 \begin{itemize}
 \item \textbf{Request}
 \begin{itemize}
-\item used to ask for response containing all OR part of a routers routing table  
-\item normally send as multicast (RIPv1 broadcast) but can be a situation that we need to send to just one response to just one router (possible with RIPng) then packet is sent directly to the router from a UDP port other that the RIPng port
-\item if there is one entry in the request, destination prefix is zero, a prefix length is zero, metric of infinity 16, then this is request to send entire routing table
+\item used to ask for response containing all or part of a routers routing table  
+\item normally is sent as multicast (broadcast for RIPv1) but there can be a situation that we need to send just one response to just one router (possible with RIPng) then packet is sent directly to the router from an UDP port other that the RIPng port
+\item if there is one entry in the request, destination prefix is zero, a prefix length is zero, metric of infinity 16, then this is a request to send entire routing table
 \end{itemize}
 
 \item \textbf{Response}
@@ -144,13 +144,13 @@ Configuration of MD5 consists of:
 \item defining a key chain with a name that determines the set of keys that can be used on the interface
 \item defining the key or keys on the chain (related to number point number one)
 \item defining the key string to be used in the key, needs to be same on remote routers, the actual password
-\item enable authentication on the interface and specify the key chain + type of authentication (MD5)
+\item enabling authentication on the interface and specifying the key chain + type of authentication (MD5)
 \end{enumerate}
 
 \noindent
-Apart from type number 3 in Key Keyed Message Digest, routing update contains:
+Apart from type number 3, routing update contains:
 \begin{enumerate}
-\item $\SI{16}{\bit}$ authentication data
+\item $\SI{16}{\bit}$ authentication data (not in the same entry as Key Identifier)
 \item $\SI{8}{\bit}$ field contains Key Identifier or Key id
 \item $\SI{8}{\bit}$ field contains the length of data field
 \item $\SI{32}{\bit}$ sequence number that must be non-decreasing for all message with same key ID
@@ -163,21 +163,6 @@ Verification uses MD5 hash algorithm using a password which routing updates does
 \subsection{RIPng}
 Protocol RIPng is a routing protocol implemented for IPv6 networking. In comparison with RIPv2 there is no authentication, RIPng relies on the IP Authentication Header\cite{ip_header} and the IP Encapsulating Security Payload\cite{payload}\cite{ripng}. Structure is similar to RIPv2 described in \ref{sec:ripv4}, but instead of sending subnet mask, a prefix length is sent. 
 
-\subsubsection{Process of setting a route to routing table}
-\begin{enumerate}
-\item set destination prefix and length in RTE (routing table entry)
-\item set metric to the newly calculated metric
-\item set the next hop address to be the address from which the datagram came or is specified by a next hop in RTE
-\item initialized the timeout
-\item set the route change flag
-\item signal the output process to trigger an update
-\end{enumerate}
-
-\noindent
-If there is an existing router, compare next hop, If next hop is from the same router as the existing router, update timer.\\
-If metric is lower, put the next metric in, adjust IP address and set the route change flag\\
-If the new metric is infinity, start the deletion process\cite{ripng}.
-
 
 \section{Implementation details}
 Our main task was to study routing protocols RIP, RIP2 and RIPng. After that, we implemented sniffer RIPv1, RIPv2 and RIPng messages, faker that sends a RIP response message to router and perform a success attack.
@@ -189,14 +174,14 @@ There is a an example how to run the program after compilation (after make). Pro
 \texttt{format: ./myripsniffer -i <interface>}\\
 \texttt{example: ./myripsniffer -i eth0}
 
-\subsubsection{Structure}
+\subsubsection{File structure}
 \texttt{sniffer.c} - contains functions to parse and print RIP packets (RIPv1, RIPv2, RIPng)\\
 \texttt{headers.h} - contains RIP packets headers\\
 \texttt{sniffer\_h.h} - contains headers of functions belonging to RIP sniffer\\
 \texttt{myripsniffer.c} - main file that starts capturing packets\\
 
 \noindent
-For capturing packets I was using functions from libpcap library. Firstly is important to set an interface, open a handle and apply a filter. Chosen filter was udp port $520$ or udp port $521$ that corresponds to RIPv1, RIPv2 and RIPng protocols. In an immense loop (function \texttt{pcap\_loop}) I was parsing packets a printing all important information (function \texttt{print\_packet}). Thanks to libraries as \texttt{ip.h, udp.h}, I did not have to implement structure of udp and ip protocol. I implemented RIP structures described in \ref{sec:ripv4} in file \texttt{headers.h} and had to distinguish IPv4 packet from IPv6 packet (functions \texttt{ipv6\_process} and \texttt{ipv4\_process}). Due to a fact that we know a routing table entry length and length of RIP packet, we can loop till actual parsing length is equal or greater than rip length. In this loop I parse RIP entry, for IPv4 we must not forget types of authentication (see more in section \ref{sec:auth}).
+For capturing packets I was using functions from libpcap library. Firstly is important to set an interface, open a handle and apply a filter. Chosen filter was udp port $520$ or udp port $521$ that corresponds to RIPv1, RIPv2 and RIPng protocols. In an immense loop (function \texttt{pcap\_loop}), I was parsing packets and printing all important information (function \texttt{print\_packet}). Thanks to libraries as \texttt{ip.h, udp.h}, I did not have to implement structure of udp and ip protocol. I implemented RIP structures described in \ref{sec:ripv4} in file \texttt{headers.h} and had to distinguish IPv4 packets from IPv6 packets (functions \texttt{ipv6\_process} and \texttt{ipv4\_process}). Due to a fact that we know a routing table entry length and length of RIP packet, we can loop till actual parsing length is equal or greater than rip length. In this loop I parse RIP entry, for IPv4 we must not forget types of authentication (see more in section \ref{sec:auth}).
 
 \subsection{RIP response}
 There is a an example how to run the program sending one rip packet after compilation (after make). Program send RIP packet according to information given on input.\\
@@ -211,9 +196,10 @@ There is a an example how to run the program sending one rip packet after compil
 \texttt{response.h} - contains used response structures\\
 
 \noindent
-This part of project is shorter than the first one. It is composed of two parts - parsing arguments and sending a RIPng packet. This packet consist of one RIP header and two routing table entries. In header we set response command and version one. First entry contains information given on input (route tag, prefix, number of hops, metric) and the second contains next hop with metric of value of \texttt{0xFF}\cite{ripng}. Next hop is set according to input or default a next hop is used (\texttt{::}).
+This part of project is shorter than the first one. It is composed of two parts - parsing arguments and sending a RIPng packet. This packet consists of one RIP header and two routing table entries. In header we set response command and version one. First entry contains next hop with metric of value of \texttt{0xFF}\cite{ripng} and the second contains information given on input (route tag, prefix, number of hops, metric). Next hop is set according to input or a default next hop is used (\texttt{::}). This order is specified in RFC 2080.\\
+
 \noindent
-While creating an UDP packet, we set a receivers address to multicast group \texttt{FF02::9}, RIPng port $521$, interface index, hop limit of $255$ (maximum hop limit), \texttt{AFI} and receivers IPv6 address to any (\texttt{in6addr\_any}).
+While creating a UDP packet, we set a receiver's address to multicast group \texttt{FF02::9}, RIPng port $521$, interface index, hop limit of $255$ (maximum hop limit), \texttt{AFI} and receiver's IPv6 address to any (\texttt{in6addr\_any}).
 
 \section{Testing}
 \subsection{Settings}
@@ -224,22 +210,22 @@ On my computer I have two virtual machines with FreeBSD (given from school) and 
 Sniffer needs to be compatible with RIPv1, RIPv2 and RIPng. Because of it I use a filter that captures packets on UDP port $520$ and $521$.
 
 \subsubsection{RIPv2 with simple password}
-In Figure \ref{fig:simple_password} there is an example of captured RIPv2 packet with a simple password. RIP part start with a header \texttt{== Routing information protocol ==}, we find there all information related with RIP as command,IP address, authentication, version, AFI, route tag, netmask and nexthop. Each entry is separated by an empty row. Authentication password given from school is: \texttt{ISA>28314708612}.
-
-\subsubsection{RIPng}
-In Figure \ref{fig:ripng} there is an example of captured RIPng packet. It is very similar to RIPv1 and RIPv2 packet described in section \ref{sec:sniffer}.
+In Figure~\ref{fig:simple_password} there is an example of captured RIPv2 packet with a simple password. RIP part start with a header \texttt{== Routing information protocol ==}, we can find there all information related to RIP as command, IP address, authentication, version, AFI, route tag, netmask and nexthop. Each entry is separated by an empty row. Authentication password given from school is: \texttt{ISA>28e17d98ca0}.
 
 \begin{figure}[H]
 	
-	\includegraphics[width=11cm]{img/simple_password.png} 
+	\includegraphics[width=10cm]{img/simple.png} 
 	\caption{Sample of captured RIPv2 packet with simple password}
 	\label{fig:simple_password}
 
 \end{figure}
 
+\subsubsection{RIPng}
+In Figure\ref{fig:ripng} there is an example of captured RIPng packet. It is very similar to RIPv1 and RIPv2 packet described in section \ref{sec:sniffer}. 
+
 \begin{figure}[H]
 	
-	\includegraphics[width=11cm]{img/sniffer_ripng.png} 
+	\includegraphics[width=9cm]{img/ipv6.png} 
 	\caption{Sample of captured RIPng packet}
 	\label{fig:ripng}
 
@@ -254,16 +240,17 @@ In Figure \ref{fig:ripng} there is an example of captured RIPng packet. It is ve
 \end{figure}     
 
 \subsection{Captured routes from FreeBSD}
-In tables below there is a list of routes that I captured. The same IP address we can also see in Figure \ref{fig:simple_password} and Figure \ref{fig:ripng}.\\
+In tables below there is a list of routes that I captured. The same IP address we can also see in Figure~\ref{fig:simple_password} and Figure~\ref{fig:ripng}.\\
 
+\noindent
 \textbf{RIPv2}\\
 \begin{tabular}{lccccc}
 IPv4 address     & Mask  & NextHop & AFI & Route Tag & Metric\\
 \hline
-10.48.48.0 		& 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
-10.103.211.0    & 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
-10.111.105.0    & 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
-10.216.110.0    & 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
+10.51.54.0 		& 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
+10.101.97.0    & 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
+10.115.231.0    & 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
+10.198.114.0    & 255.255.255.0 & 0.0.0.0 & IP & 0 & 1\\
 \end{tabular}
 \\
 \\
@@ -271,23 +258,24 @@ IPv4 address     & Mask  & NextHop & AFI & Route Tag & Metric\\
 \noindent
 \textbf{RIPng}\\
 \begin{tabular}{lccc}
-IPv6 address     & Prefix   & Metric & Route Tag \\
+IPv6 address prefix    & Prefix   & Metric & Route Tag \\
 \hline
-fd00:d5:3390:: 		& 64  & 1 & 0  \\
-fd00:108:2c4c::    & 64  & 1 & 0   \\
-fd00:4d4:6c::    & 64  & 1 & 0   \\
-fd00:4d4:6c::    & 64  & 1 & 0   \\
+fd00:: 		& 64  & 1 & 0  \\
+fd00:e5:3570:: 		& 64  & 1 & 0  \\
+fd00:f9:2bf4::    & 64  & 1 & 0   \\
+fd00:1cc:74::    & 64  & 1 & 0   \\
+fd00:ac2:154e::    & 64  & 1 & 0   \\
 \end{tabular}
 
 
 \subsection{Sending a fake RIP response packet}
-I implemented a program to send RIP response packet with malicious IP address, then by connecting to router demon (127.0.0.1 2601) I could verify that my fake IP address was added to attacked router's routing table (see in Figure~\ref{fig:bsdroute}). In Figure~\ref{fig:send_packet} we can find structure of sent RIPng Response packet visualized in wireshark. \\
+I implemented a program to send RIP response packet with malicious IP address, then by connecting to a router demon ($127.0.0.1 2601$) I could verify that my fake IP address was added to attacked router's routing table (see in Figure~\ref{fig:bsdroute}). In Figure~\ref{fig:send_packet} we can find structure of sent RIPng Response packet visualized in wireshark. \\
 \noindent
-\texttt{run command: sudo ./myripresponse -i enp0s3 -r  2001:db8:0:abcd::/64}
+I got these results by running: \texttt{sudo ./myripresponse -i enp0s3 -r  2001:db8:0:abcd::/64}.
 
 \begin{figure}[H]
 	
-	\includegraphics[width=12cm]{img/send_packet.png} 
+	\includegraphics[width=12cm]{img/sendripng.png} 
 	\caption{Sample of sent RIPng packet in Wireshark}
 	\label{fig:send_packet}
 
@@ -295,15 +283,14 @@ I implemented a program to send RIP response packet with malicious IP address, t
 
 \begin{figure}[H]
 	
-	\includegraphics[width=17cm]{img/bsdroute.png} 
+	\includegraphics[width=17cm]{img/bsd.png} 
 	\caption{Shown routing table on router demon where we can notice a malicious IP address 2001:db8:0:abcd::/64 }
 	\label{fig:bsdroute}
 
 \end{figure}
 
 \section{Conclusion}
-To summarize, routing information protocols are used to communicate in smaller networks because they have a lot of limitations. RIP prevents routing loops by implementing a limit on the number of hops allowed in a path and uses UDP as a transport protocol on port number 520 and 521. It is based on sending routing table every 30 minutes in a Response message. The only RIP protocol that contains authentication is RIPv2. As we could see, it is not hard to add fake IP address to a routing table.  
-
+To summarize, routing information protocols are used to communicate in smaller networks because they have a lot of limitations. RIP prevents routing loops by implementing a limit on the number of hops allowed in a path and uses UDP as a transport protocol on port number 520 and 521. It is based on sending routing table every 30 minutes. The only RIP protocol that contains authentication is RIPv2. As we could see, it is not hard to add fake IP address to a routing table.  
 
 \pagebreak
 

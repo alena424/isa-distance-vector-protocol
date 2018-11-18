@@ -95,7 +95,7 @@ typedef struct rip_entry
 {
     //address family identifier
     uint16_t family_identif;
-    // Route Tag - method for semaration internal RIP routes from external RIP routes -- EGP/IGP
+    // Route Tag - method for separating internal RIP routes from external RIP routes -- EGP/IGP
     uint16_t route_tag; // or authentication_type if family_addr: 0xFFFF
     union data
     {
