@@ -1,6 +1,7 @@
 # ISA Nástroje monitorující a generující zprávy jednoduchých distance-vector protokolů (Dr. Veselý) 
 
 @autor Alena Tesarova
+
 @email xtesar36@stud.fit.vutbr.cz
 
 *Zadání*
@@ -10,6 +11,7 @@
 4) za použití obou nástrojů, které jste si předpřipravili v předchozím bodě pak provést úspěšný útok 
 
 *RIP sniffer*
+
 spuštění programu příklad:
 ./myripsniffer -i <rozhraní> 
 
@@ -28,6 +30,7 @@ Sniffer používá k odchytávání paketů filtr na udp port 520 a udp port 521
 Program odešle jeden paket podle hodnot, které byly předány na vstupu nebo použije defaultní hodnoty. Struktura odpovídá struktuře RIPng paketu popsaného v dokumentaci.
 
 *Rozšíření*
-Nebyla impelmentována žádná rozšíření k projektu.
 
-===================================================
+Nebyla implementována žádná rozšíření k projektu.
+
+===================================================================================
