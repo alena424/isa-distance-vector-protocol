@@ -1,6 +1,6 @@
 /**
 * sniffer.c
-* @brief main file which starts capturing packets
+* @brief functions to parse and print RIP packets (RIPv1, RIPv2, RIPng)
 * @author Alena Tesarova, xtesar36@stud.fit.vutbr.cz
 * @date 20.11.2018
 * project ISA 2018
@@ -51,7 +51,7 @@ void print_command(int command, char *version_string)
         strcpy(command_string, "RESPONSE");
         break;
     default:
-        fprintf( stderr, "Comamnd is %d.", command);
+        fprintf( stderr, "Command is %d.", command);
         return;
 
     }

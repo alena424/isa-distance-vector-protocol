@@ -1,6 +1,6 @@
 /**
 * response.c
-* @brief sned rip packets
+* @brief create and send rip packet
 * @author Alena Tesarova, xtesar36@stud.fit.vutbr.cz
 * @date 20.11.2018
 * project ISA 2018
@@ -33,7 +33,6 @@ void send_response(response_args *arguments){
   rip_entr.route_tag = arguments->route_tag ;
   rip_entr.prefixLength = arguments->prefix_int;
   rip_entr.metric = arguments->number_of_hops;
-
   rip_entr.prefix = arguments->addr;
 
   rip_entr_next.route_tag = 0;
@@ -41,8 +40,8 @@ void send_response(response_args *arguments){
   rip_entr_next.metric = 0xFF;
   rip_entr_next.next_hop = arguments->next_hop;
 
-  memcpy( (u_char * ) packet + LENGTH_RIP_HEADER, &rip_entr, LENGTH_RIP_ENTRY);
-  memcpy( (u_char * ) packet + LENGTH_RIP_HEADER + LENGTH_RIP_ENTRY, &rip_entr_next, LENGTH_RIP_ENTRY);
+  memcpy( (u_char * ) packet + LENGTH_RIP_HEADER, &rip_entr_next, LENGTH_RIP_ENTRY);
+  memcpy( (u_char * ) packet + LENGTH_RIP_HEADER + LENGTH_RIP_ENTRY, &rip_entr, LENGTH_RIP_ENTRY);
 
   // lets create socket, bind and send
   struct sockaddr_in6 my_addr, dest_addr;

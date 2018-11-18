@@ -1,6 +1,6 @@
 /**
 * myripsniffer.c
-* @brief functions to parse and print RIP packets (RIPv1, RIPv2, RIPng)
+* @brief main file which starts capturing packets
 * @author Alena Tesarova, xtesar36@stud.fit.vutbr.cz
 * @date 20.11.2018
 * project ISA 2018
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
     if (pcap_lookupnet(interface, &net, &mask, errbuf) == -1)
     {
-        fprintf(stderr, "Can't get netmask for interfaceice %s\n", interface);
+        fprintf(stderr, "Can't get netmask for interface %s\n", interface);
         net = 0;
         mask = 0;
     }
